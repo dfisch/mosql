@@ -123,6 +123,8 @@ module MoSQL
         case v
         when BSON::Binary, BSON::ObjectId
           v = v.to_s
+        when BSON::DBRef
+          v = v.object_id.to_s
         end
         row << v
       end
