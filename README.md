@@ -62,6 +62,9 @@ types. An example collection map might be:
         - author_bio:
           :source: author.bio
           :type: TEXT
+        - author_address_id:
+          :source: author_address
+          :type: TEXT
         - title: TEXT
         - created: DOUBLE PRECISION
         :meta:
@@ -88,6 +91,8 @@ extracting elements of a nested hash using MongoDB's
 [dot notation][dot-notation]. In the above example, the `name` and
 `bio` fields of the `author` sub-document will be expanded, and the
 MongoDB `_id` field will be mapped to an SQL `id` column.
+
+A DBRef, reference to another object in a MongoDB database, is a different type of field that [dot notation][dot-notation] does not work on.  As a convenience, MoSQL will watch for DBRef fields and extract the id from it.  In the above example, the `author_address_id` field has a `:source` of `author_address`, a DBRef field.  Instead of the `:source` attribute pointing to the `author_address.id` property, it simply points to the `author_address` field, the id in the DBRef will be extracted and inserted into the sql table into the `address_adress_id` column.
 
 At present, MoSQL does not support using the dot notation to access
 elements inside arrays.
