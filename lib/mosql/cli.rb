@@ -90,6 +90,10 @@ module MoSQL
         opts.on("--no-drop-tables", "Don't drop the table if it exists during the initial import") do
           @options[:no_drop_tables] = true
         end
+
+        opts.on("--log-oplog [tablename]", "Log the oplog to the specified table name.") do |tablename|
+          @options[:log_oplog] = tablename
+        end
       end
 
       optparse.parse!(@args)
@@ -135,6 +139,12 @@ module MoSQL
       connect_mongo
 
       metadata_table = MoSQL::Tailer.create_table(@sql.db, 'mosql_tailers')
+
+      # If the oplog table is defined, created it
+      if options.has_key?(:log_oplog)
+        oplog_table = MoSQL::Oplogger.create_table(@sql.db, options[:log_oplog])
+        @oplogger = MoSQL::Oplogger.new(oplog_table)
+      end
 
       @tailer = MoSQL::Tailer.new([@mongo], :existing, metadata_table,
                                   :service => options[:service])
@@ -278,6 +288,10 @@ module MoSQL
       unless @schemamap.find_ns(op['ns'])
         log.debug("Skipping op for unknown ns #{op['ns']}...")
         return
+      end
+
+      if @options.has_key?(:log_oplog)
+        @oplogger.write_log(op)
       end
 
       ns = op['ns']
